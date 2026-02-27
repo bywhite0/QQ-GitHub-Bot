@@ -6,8 +6,10 @@ services:
       - TZ=Asia/Shanghai
       - REDIS_PASSWORD=${REDIS_PASSWORD:?err}
     command: ["sh", "-c", "redis-server --requirepass $$REDIS_PASSWORD"]
+    ports:
+      - "6379:6379"
     volumes:
-      - bot_redis_data:/data
+      - ghbot_redis_data:/data
     restart: always
 
   postgres:
@@ -18,8 +20,10 @@ services:
       - POSTGRES_DB=${POSTGRES_DB:?err}
       - POSTGRES_INITDB_ARGS="--encoding=UTF8"
       - TZ=Asia/Shanghai
+    ports:
+      - "5432:5432"
     volumes:
-      - bot_postgres_data:/var/lib/postgresql/data
+      - ghbot_postgres_data:/var/lib/postgresql/data
     restart: always
 
   nonebot:
@@ -52,7 +56,12 @@ services:
       timeout: 10s
       retries: 3
       start_period: 30s
-    restart: always
+    ports:
+      - "8086:8086"
+    command: sh -c "tail -f /dev/null"
+    # restart: always
+    profiles:
+      - nonebot
 
   go-cqhttp:
     image: ghcr.io/mrs4s/go-cqhttp:latest
@@ -64,5 +73,5 @@ services:
     profiles:
       - go-cqhttp
 volumes:
-  bot_redis_data: {}
-  bot_postgres_data: {}
+  ghbot_redis_data: {}
+  ghbot_postgres_data: {}
