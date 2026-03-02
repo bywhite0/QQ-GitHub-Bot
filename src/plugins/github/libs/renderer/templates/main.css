@@ -106,6 +106,11 @@
   border-radius: 6px;
 }
 
+/* Issues and PRs image style fix */
+.markdown-body img {
+  height: auto !important;
+}
+
 /* github emoji */
 g-emoji {
   display: inline-block;
@@ -347,4 +352,8 @@ g-emoji {
 .discussion-item-header {
   color: var(--fgColor-muted);
   word-wrap: break-word;
+}
+
+:root {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, "Noto Sans JP", "Droid Sans", "ヒラギノ角ゴ ProN W3", "Hiragino Kaku Gothic ProN", "游ゴシック", YuGothic, "メイリオ", Meiryo;
 }
