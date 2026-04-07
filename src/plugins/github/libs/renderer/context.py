@@ -127,6 +127,7 @@ class IssueInfo:
         cls,
         issue: (
             models.WebhookIssuesOpenedPropIssue
+            | models.WebhookIssuesReopenedPropIssue
             | models.WebhookIssuesClosedPropIssue
             | models.WebhookIssueCommentCreatedPropIssue
             | models.WebhookIssueCommentEditedPropIssue
@@ -135,6 +136,8 @@ class IssueInfo:
         if issue.state:
             state = issue.state
         elif isinstance(issue, models.WebhookIssuesOpenedPropIssue):
+            state = "open"
+        elif isinstance(issue, models.WebhookIssuesReopenedPropIssue):
             state = "open"
         elif isinstance(issue, models.WebhookIssuesClosedPropIssue):
             state = "closed"
@@ -1092,5 +1095,51 @@ class IssueClosedContext:
                 created_at=issue.closed_at or issue.updated_at,
                 state_reason=state_reason,
                 commit_id=merge_commit_sha,
+            ),
+        )
+
+
+@dataclass(frozen=True, kw_only=True)
+class IssueReopenedContext:
+    repo: RepoInfo
+    issue: IssueInfo | PullRequestInfo
+    labels: list[tuple[str, tuple[int, int, int, int, int, int]]]
+    event: TimelineEventStateChange
+
+    @property
+    def is_pull_request(self) -> bool:
+        return isinstance(self.issue, PullRequestInfo)
+
+    @classmethod
+    async def from_webhook(
+        cls,
+        bot: GitHubBot | OAuthBot,
+        repo: models.RepositoryWebhooks,
+        issue: models.WebhookIssuesReopenedPropIssue | models.PullRequestWebhook,
+        sender: models.SimpleUserWebhooks,
+    ) -> Self:
+        if isinstance(issue, models.PullRequestWebhook):
+            issue_info = PullRequestInfo.from_webhook(issue)
+        else:
+            issue_info = IssueInfo.from_webhook(issue)
+
+        labels: list[tuple[str, tuple[int, int, int, int, int, int]]] = []
+        if issue.labels:
+            for label in issue.labels:
+                if label is None or label.name is None or label.color is None:
+                    continue
+                labels.append((label.name, get_issue_label_color(label.color)))
+
+        return cls(
+            repo=RepoInfo.from_webhook(repo),
+            issue=issue_info,
+            labels=labels,
+            event=TimelineEventStateChange(
+                event="reopened",
+                actor=sender.login,
+                actor_avatar=sender.avatar_url,
+                created_at=issue.updated_at,
+                state_reason=None,
+                commit_id=None,
             ),
         )
