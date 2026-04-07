@@ -1126,11 +1126,8 @@ class IssueReopenedContext:
         labels: list[tuple[str, tuple[int, int, int, int, int, int]]] = []
         if issue.labels:
             for label in issue.labels:
-<<<<<<< HEAD
-=======
                 if label is None or label.name is None or label.color is None:
                     continue
->>>>>>> 4b7816c496765fdc4bb072f8f32f792a609f7e54
                 labels.append((label.name, get_issue_label_color(label.color)))
 
         return cls(
@@ -1145,8 +1142,4 @@ class IssueReopenedContext:
                 state_reason=None,
                 commit_id=None,
             ),
-<<<<<<< HEAD
         )
-=======
-        )
->>>>>>> 4b7816c496765fdc4bb072f8f32f792a609f7e54
