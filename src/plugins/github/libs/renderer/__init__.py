@@ -29,6 +29,7 @@ from .context import (
     IssueContext,
     ReadmeContext,
     IssueClosedContext,
+    IssueReopenedContext,
     IssueOpenedContext,
     IssueCommentedContext,
     UserContributionContext,
@@ -38,6 +39,7 @@ from .render import (
     readme_to_html,
     pr_diff_to_html,
     issue_closed_to_html,
+    issue_reopened_to_html,
     issue_opened_to_html,
     issue_commented_to_html,
     user_contribution_to_html,
@@ -77,6 +79,7 @@ def _context_hash(
         | IssueOpenedContext
         | IssueCommentedContext
         | IssueClosedContext
+        | IssueReopenedContext
     ),
 ) -> str:
     context_json = to_json(context)
@@ -210,4 +213,22 @@ async def issue_closed_to_image(
     html = await issue_closed_to_html(context, theme=config.github_theme)
     image = await _github_html_to_image(html)
     await save_rendered_image("issue_closed", context_hash, image)
+    return image
+
+
+async def issue_reopened_to_image(
+    bot: GitHubBot | OAuthBot,
+    repo: models.RepositoryWebhooks,
+    issue: models.WebhookIssuesReopenedPropIssue | models.PullRequestWebhook,
+    sender: models.SimpleUserWebhooks,
+) -> bytes:
+    """Render webhook event issue/reopened to image"""
+    context = await IssueReopenedContext.from_webhook(bot, repo, issue, sender)
+    context_hash = _context_hash(context)
+    if cached_image := await get_rendered_image("issue_reopened", context_hash):
+        return cached_image
+
+    html = await issue_reopened_to_html(context, theme=config.github_theme)
+    image = await _github_html_to_image(html)
+    await save_rendered_image("issue_reopened", context_hash, image)
     return image

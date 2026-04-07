@@ -29,6 +29,7 @@ from .context import (
     IssueContext,
     ReadmeContext,
     IssueClosedContext,
+    IssueReopenedContext,
     IssueOpenedContext,
     IssueCommentedContext,
     UserContributionContext,
@@ -141,4 +142,17 @@ async def issue_closed_to_html(
         theme: the theme of the html
     """
     template = env.get_template("views/issue-closed.html.jinja")
+    return await template.render_async(ctx=ctx, theme=theme)
+
+
+async def issue_reopened_to_html(
+    ctx: IssueReopenedContext, theme: Literal["light", "dark"] = "light"
+) -> str:
+    """Render issue or pr reopened webhook event to html
+
+    Args:
+        ctx: the issue reopened context
+        theme: the theme of the html
+    """
+    template = env.get_template("views/issue-reopened.html.jinja")
     return await template.render_async(ctx=ctx, theme=theme)

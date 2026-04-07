@@ -27,6 +27,7 @@ def get_comment_reactions(
     reactions: (
         models.ReactionRollup
         | models.WebhookIssuesOpenedPropIssuePropReactions
+        | models.WebhookIssuesReopenedPropIssuePropReactions
         | models.WebhookIssuesClosedPropIssueMergedReactions
         | models.WebhookIssueCommentCreatedPropIssueMergedReactions
         | models.WebhookIssueCommentEditedPropIssueMergedReactions

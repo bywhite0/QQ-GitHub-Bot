@@ -83,9 +83,9 @@ _✨ GitHub Bot for QQ ✨_
 
 |      事件类型       |               事件描述                |
 | :-----------------: | :-----------------------------------: |
-|       Issues        | 任何开启、关闭、修改等 Issue 相关操作 |
+|       Issues        | 开启、关闭、重新开启、修改等 Issue 操作 |
 |    Issue Comment    |   创建、修改、删除 Issue/PR 的评论    |
-|    Pull Request     |  任何开启、关闭、修改等 PR 相关操作   |
+|    Pull Request     |  开启、关闭、重新开启、修改等 PR 操作  |
 | Pull Request Review |          PR Review 相关操作           |
 |        Star         |           star、unstar 仓库           |
 |        Push         |          push commit 到仓库           |
