@@ -30,7 +30,7 @@ __plugin_meta__ = PluginMetadata(
     "使用 /about 命令获取关于本机器人的信息",
 )
 
-OWNER = "cscs181"
+OWNER = "bywhite0"
 REPO = "QQ-GitHub-Bot"
 HOMEPAGE = f"https://github.com/{OWNER}/{REPO}"
 
