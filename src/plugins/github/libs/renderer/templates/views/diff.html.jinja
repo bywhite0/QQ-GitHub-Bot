@@ -32,7 +32,7 @@ ctx.repo.parent_full_name, ctx.repo.template_full_name, ctx.repo.forks_count, ct
       ) }}
       <div>
         {% for file in ctx.patch_set %}
-        {{ diff_file(file) }}
+        {{ diff_file(file, theme) }}
         {% endfor %}
       </div>
       {{ pr_action() }}

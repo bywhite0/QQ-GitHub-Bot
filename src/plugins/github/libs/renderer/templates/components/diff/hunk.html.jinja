@@ -13,9 +13,10 @@
 {#
 hunk: Hunk
 #}
-{% macro diff_hunk(hunk) %}
+{% macro diff_hunk(hunk, file_path, theme) %}
+{% set highlighted_lines = hunk|map(attribute="value")|list|highlight_diff_hunk(file_path, theme) %}
 {{ diff_hunk_header(hunk) }}
 {% for line in hunk %}
-{{ diff_hunk_line(line) }}
+{{ diff_hunk_line(line, highlighted_lines[loop.index0]) }}
 {% endfor %}
 {% endmacro %}

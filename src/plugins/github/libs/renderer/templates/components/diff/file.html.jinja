@@ -13,9 +13,9 @@
 {#
 file: PatchedFile
 #}
-{% macro diff_file(file) %}
+{% macro diff_file(file, theme) %}
 <div class="position-relative mb-3 border rounded-2 color-border-default">
   {{ diff_header(file) }}
-  {{ diff_content(file) }}
+  {{ diff_content(file, theme) }}
 </div>
 {% endmacro %}
