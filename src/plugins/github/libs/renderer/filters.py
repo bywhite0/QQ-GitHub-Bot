@@ -9,17 +9,23 @@
 
 __author__ = "yanyongyu"
 
+from typing import Literal
 from dataclasses import asdict
 from datetime import UTC, datetime
 
 import humanize
 from nonebot import logger
+from pygments import highlight
 from markdown_it import MarkdownIt
 from markdown_it.token import Token
+from markupsafe import Markup, escape
 from mdit_py_emoji import emoji_plugin
+from pygments.util import ClassNotFound
 from markdown_it.utils import OptionsDict
+from pygments.formatters import HtmlFormatter
 from markdown_it.renderer import RendererProtocol
 from mdit_py_plugins.tasklists import tasklists_plugin
+from pygments.lexers import TextLexer, get_lexer_for_filename
 
 from .context import TimelineEvent
 
@@ -36,6 +42,9 @@ emoji_md = MarkdownIt("zero").use(emoji_plugin, shortcuts={})
 """Markdown parser for emoji"""
 gfm_md = MarkdownIt("gfm-like").use(tasklists_plugin).use(emoji_plugin, shortcuts={})
 """Markdown parser for gfm-like markdown"""
+
+light_diff_formatter = HtmlFormatter(nowrap=True, noclasses=True, style="default")
+dark_diff_formatter = HtmlFormatter(nowrap=True, noclasses=True, style="github-dark")
 
 
 def emoji_format(
@@ -108,3 +117,20 @@ def review_state(value: str) -> str:
 def left_truncate(value: str, max_length: int) -> str:
     """Truncate string from left"""
     return f"...{value[-max_length:]}" if len(value) > max_length else value
+
+
+def highlight_diff_line(
+    value: str, file_path: str, theme: Literal["light", "dark"] = "light"
+) -> Markup:
+    """Highlight a diff line by file extension."""
+    formatter = dark_diff_formatter if theme == "dark" else light_diff_formatter
+    try:
+        lexer = get_lexer_for_filename(file_path, value)
+    except ClassNotFound:
+        lexer = TextLexer(stripnl=False)
+
+    try:
+        highlighted = highlight(value, lexer, formatter).rstrip("\n")
+    except Exception:
+        return escape(value)
+    return Markup(highlighted)
