@@ -23,6 +23,7 @@ from .filters import (
     relative_time,
     markdown_emoji,
     markdown_title,
+    highlight_diff_hunk,
     highlight_diff_line,
 )
 from .context import (
@@ -51,6 +52,7 @@ env.filters["relative_time"] = relative_time
 env.filters["debug_event"] = debug_event
 env.filters["review_state"] = review_state
 env.filters["left_truncate"] = left_truncate
+env.filters["highlight_diff_hunk"] = highlight_diff_hunk
 env.filters["highlight_diff_line"] = highlight_diff_line
 
 env.globals["scale_linear"] = scale_linear

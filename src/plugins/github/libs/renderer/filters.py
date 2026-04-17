@@ -141,3 +141,73 @@ def highlight_diff_line(
     except Exception:
         return escape(value)
     return Markup(highlighted)
+
+
+def _get_token_inline_style(formatter: HtmlFormatter, token_type) -> str:
+    """Get inline style string for a token."""
+    style_info = formatter.style.style_for_token(token_type)
+    styles: list[str] = []
+    if color := style_info["color"]:
+        styles.append(f"color: #{color}")
+    if bg_color := style_info["bgcolor"]:
+        styles.append(f"background-color: #{bg_color}")
+    if border := style_info["border"]:
+        styles.append(f"border: 1px solid #{border}")
+    if style_info["bold"]:
+        styles.append("font-weight: bold")
+    if style_info["italic"]:
+        styles.append("font-style: italic")
+    if style_info["underline"]:
+        styles.append("text-decoration: underline")
+    return "; ".join(styles)
+
+
+def _highlight_hunk_lines(value: str, file_path: str, theme: Literal["light", "dark"]):
+    """Highlight a whole hunk and split into safe per-line markup."""
+    formatter = dark_diff_formatter if theme == "dark" else light_diff_formatter
+    lexer = _get_diff_lexer(file_path)
+
+    lines: list[Markup] = []
+    current_line_parts: list[str] = []
+
+    for token_type, token_value in lexer.get_tokens(value):
+        if not token_value:
+            continue
+
+        inline_style = _get_token_inline_style(formatter, token_type)
+        for fragment in token_value.splitlines(keepends=True):
+            has_newline = fragment.endswith("\n")
+            content = fragment[:-1] if has_newline else fragment
+
+            if content:
+                escaped_content = str(escape(content))
+                if inline_style:
+                    current_line_parts.append(
+                        f'<span style="{inline_style}">{escaped_content}</span>'
+                    )
+                else:
+                    current_line_parts.append(escaped_content)
+
+            if has_newline:
+                lines.append(Markup("".join(current_line_parts)))
+                current_line_parts = []
+
+    if current_line_parts or not lines:
+        lines.append(Markup("".join(current_line_parts)))
+
+    return lines
+
+
+def highlight_diff_hunk(
+    lines: list[str], file_path: str, theme: Literal["light", "dark"] = "light"
+) -> list[Markup]:
+    """Highlight a diff hunk with lexer context preserved across lines."""
+    hunk_text = "".join(lines)
+    try:
+        highlighted_lines = _highlight_hunk_lines(hunk_text, file_path, theme)
+    except Exception:
+        return [escape(line.rstrip("\n")) for line in lines]
+
+    if len(highlighted_lines) != len(lines):
+        return [highlight_diff_line(line, file_path, theme) for line in lines]
+    return highlighted_lines

@@ -10,7 +10,7 @@
 {#
 line: Line
 #}
-{% macro diff_hunk_line(line, file_path, theme) %}
+{% macro diff_hunk_line(line, highlighted_line) %}
 {% if line.is_added %}
 {% set type = "addition" %}
 {% set marker = "+" %}
@@ -28,7 +28,7 @@ line: Line
     <span
       class="blob-code-inner blob-code-marker"
       data-code-marker="{{ marker }}"
-    >{{ line.value|highlight_diff_line(file_path, theme) }}</span>
+    >{{ highlighted_line }}</span>
   </td>
 </tr>
 {% endmacro %}
