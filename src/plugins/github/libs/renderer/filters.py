@@ -51,8 +51,9 @@ dark_diff_formatter = HtmlFormatter(nowrap=True, noclasses=True, style="github-d
 @lru_cache(maxsize=128)
 def _get_diff_lexer(file_path: str):
     """Get lexer by file path with cache for diff rendering."""
+    filename = file_path.replace("\\", "/").rsplit("/", 1)[-1]
     try:
-        return get_lexer_for_filename(file_path)
+        return get_lexer_for_filename(filename)
     except ClassNotFound:
         return TextLexer(stripnl=False)
 
@@ -137,15 +138,16 @@ def highlight_diff_line(
     lexer = _get_diff_lexer(file_path)
 
     try:
-        highlighted = highlight(value, lexer, formatter).rstrip("\n")
+        highlighted = highlight(value, lexer, formatter).rstrip("\r\n")
     except Exception:
         return escape(value)
     return Markup(highlighted)
 
 
-def _get_token_inline_style(formatter: HtmlFormatter, token_type) -> str:
+@lru_cache(maxsize=1024)
+def _get_token_inline_style(style_cls, token_type) -> str:
     """Get inline style string for a token."""
-    style_info = formatter.style.style_for_token(token_type)
+    style_info = style_cls.style_for_token(token_type)
     styles: list[str] = []
     if color := style_info["color"]:
         styles.append(f"color: #{color}")
@@ -174,10 +176,10 @@ def _highlight_hunk_lines(value: str, file_path: str, theme: Literal["light", "d
         if not token_value:
             continue
 
-        inline_style = _get_token_inline_style(formatter, token_type)
+        inline_style = _get_token_inline_style(formatter.style, token_type)
         for fragment in token_value.splitlines(keepends=True):
-            has_newline = fragment.endswith("\n")
-            content = fragment[:-1] if has_newline else fragment
+            content = fragment.rstrip("\r\n")
+            has_newline = len(content) < len(fragment)
 
             if content:
                 escaped_content = str(escape(content))
@@ -206,7 +208,7 @@ def highlight_diff_hunk(
     try:
         highlighted_lines = _highlight_hunk_lines(hunk_text, file_path, theme)
     except Exception:
-        return [escape(line.rstrip("\n")) for line in lines]
+        return [escape(line.rstrip("\r\n")) for line in lines]
 
     if len(highlighted_lines) != len(lines):
         return [highlight_diff_line(line, file_path, theme) for line in lines]
