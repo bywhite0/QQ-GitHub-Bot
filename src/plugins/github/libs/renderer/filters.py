@@ -11,6 +11,7 @@ __author__ = "yanyongyu"
 
 from typing import Literal
 from dataclasses import asdict
+from functools import lru_cache
 from datetime import UTC, datetime
 
 import humanize
@@ -45,6 +46,15 @@ gfm_md = MarkdownIt("gfm-like").use(tasklists_plugin).use(emoji_plugin, shortcut
 
 light_diff_formatter = HtmlFormatter(nowrap=True, noclasses=True, style="default")
 dark_diff_formatter = HtmlFormatter(nowrap=True, noclasses=True, style="github-dark")
+
+
+@lru_cache(maxsize=128)
+def _get_diff_lexer(file_path: str):
+    """Get lexer by file path with cache for diff rendering."""
+    try:
+        return get_lexer_for_filename(file_path)
+    except ClassNotFound:
+        return TextLexer(stripnl=False)
 
 
 def emoji_format(
@@ -124,10 +134,7 @@ def highlight_diff_line(
 ) -> Markup:
     """Highlight a diff line by file extension."""
     formatter = dark_diff_formatter if theme == "dark" else light_diff_formatter
-    try:
-        lexer = get_lexer_for_filename(file_path, value)
-    except ClassNotFound:
-        lexer = TextLexer(stripnl=False)
+    lexer = _get_diff_lexer(file_path)
 
     try:
         highlighted = highlight(value, lexer, formatter).rstrip("\n")
