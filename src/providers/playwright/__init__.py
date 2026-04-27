@@ -62,7 +62,14 @@ async def get_new_page(**kwargs) -> AsyncGenerator[Page, None]:
     Args:
         kwargs: Keyword arguments to pass to `browser.new_context`.
     """
-    ctx = await get_browser().new_context(**kwargs)
+    ctx = await get_browser().new_context(**kwargs, device_scale_factor=1.8)
+    # ---------------------------------------------------------
+    # The effect of `device_scale_factor=1.8`:
+    #
+    # This parameter may drastically increase image resolution, but it will make text rendering clearer.
+    #
+    # The currently recommended value is 1.8-3.0.
+    # ---------------------------------------------------------
     page = await ctx.new_page()
     try:
         yield page
