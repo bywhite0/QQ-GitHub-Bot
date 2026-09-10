@@ -19,6 +19,7 @@ from src.plugins.github import config
 from src.plugins.github.cache.message_tag import ReleaseTag
 from src.plugins.github.libs.opengraph import get_opengraph_image
 
+from ._messages import release_message
 from ._dependencies import (
     SUBSCRIBERS,
     SEND_INTERVAL,
@@ -51,7 +52,8 @@ async def handle_release_published_event(
 
     image = await get_opengraph_image(tag)
 
-    fallback_msg = f"Release [{tag.tag}] published in {owner}/{repo}"
+    # security: only repo and tag name are broadcast (collaborator-created)
+    fallback_msg = release_message(f"{owner}/{repo}", tag.tag)
 
     for target in subscribers:
         try:

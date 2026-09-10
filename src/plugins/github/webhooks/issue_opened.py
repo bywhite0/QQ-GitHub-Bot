@@ -23,6 +23,7 @@ from src.plugins.github.utils import get_github_bot
 from src.plugins.github.libs.renderer import issue_opened_to_image
 from src.plugins.github.cache.message_tag import IssueTag, PullRequestTag
 
+from ._messages import issue_opened_message
 from ._dependencies import (
     SUBSCRIBERS,
     SEND_INTERVAL,
@@ -57,9 +58,9 @@ async def handle_issue_opened_event(
         tag = IssueTag(
             owner=owner, repo=repo, number=event.payload.issue.number, is_receive=False
         )
-        fallback_message = (
-            f"用户 {event.payload.sender.login} 创建了 Issue"
-            f" {repo_name}#{event.payload.issue.number}: {event.payload.issue.title}"
+        # security: sender login and issue title are zero-trust fields
+        fallback_message = issue_opened_message(
+            repo_name, "Issue", event.payload.issue.number
         )
         issue = event.payload.issue
     else:
@@ -69,10 +70,9 @@ async def handle_issue_opened_event(
             number=event.payload.pull_request.number,
             is_receive=False,
         )
-        fallback_message = (
-            f"用户 {event.payload.sender.login} 创建了 Pull Request"
-            f" {repo_name}#{event.payload.pull_request.number}:"
-            f" {event.payload.pull_request.title}"
+        # security: sender login and pull request title are zero-trust fields
+        fallback_message = issue_opened_message(
+            repo_name, "Pull Request", event.payload.pull_request.number
         )
         issue = event.payload.pull_request
 

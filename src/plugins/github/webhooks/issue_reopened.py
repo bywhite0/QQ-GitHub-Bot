@@ -16,17 +16,14 @@ from nonebot import logger, on_type
 from nonebot.plugin import PluginMetadata
 from playwright.async_api import Error, TimeoutError
 from githubkit.versions.latest.models import SimpleInstallation
-from nonebot.adapters.github import (
-    IssuesReopened,
-    ActionTimeout,
-    PullRequestReopened,
-)
+from nonebot.adapters.github import ActionTimeout, IssuesReopened, PullRequestReopened
 
 from src.plugins.github import config
 from src.plugins.github.utils import get_github_bot
 from src.plugins.github.libs.renderer import issue_reopened_to_image
 from src.plugins.github.cache.message_tag import IssueTag, PullRequestTag
 
+from ._messages import issue_reopened_message
 from ._dependencies import (
     SUBSCRIBERS,
     SEND_INTERVAL,
@@ -61,10 +58,8 @@ async def handle_issue_reopened_event(
         tag = IssueTag(
             owner=owner, repo=repo, number=event.payload.issue.number, is_receive=False
         )
-        fallback_message = (
-            f"用户 {event.payload.sender.login} 重新开启了 Issue"
-            f" {repo_name}#{event.payload.issue.number}: {event.payload.issue.title}"
-        )
+        # security: actor login and title are zero-trust fields
+        fallback_message = issue_reopened_message(repo_name, event.payload.issue.number)
         issue = event.payload.issue
     else:
         tag = PullRequestTag(
@@ -73,10 +68,9 @@ async def handle_issue_reopened_event(
             number=event.payload.pull_request.number,
             is_receive=False,
         )
-        fallback_message = (
-            f"用户 {event.payload.sender.login} 重新开启了 Pull Request"
-            f" {repo_name}#{event.payload.pull_request.number}:"
-            f" {event.payload.pull_request.title}"
+        # security: actor login and title are zero-trust fields
+        fallback_message = issue_reopened_message(
+            repo_name, event.payload.pull_request.number
         )
         issue = event.payload.pull_request
 

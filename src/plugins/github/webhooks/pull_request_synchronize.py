@@ -20,12 +20,8 @@ from nonebot.adapters.github import PullRequestSynchronize
 from src.plugins.github import config
 from src.plugins.github.cache.message_tag import PullRequestTag
 
-from ._dependencies import (
-    SUBSCRIBERS,
-    SEND_INTERVAL,
-    Throttle,
-    send_subscriber_text,
-)
+from ._messages import pr_synchronize_message
+from ._dependencies import SUBSCRIBERS, SEND_INTERVAL, Throttle, send_subscriber_text
 
 __plugin_meta__ = PluginMetadata(
     "GitHub Pull Request 同步事件通知",
@@ -64,11 +60,8 @@ async def handle_pull_request_synchronize_event(
     before = _short_sha(event.payload.before)
     after = _short_sha(event.payload.after)
 
-    message = (
-        f"用户 {event.payload.sender.login} 同步了 Pull Request "
-        f"{repo_name}#{pull_request.number}: {pull_request.title}"
-        f" ({before} -> {after})"
-    )
+    # security: sender login and pr title are zero-trust fields
+    message = pr_synchronize_message(repo_name, pull_request.number, before, after)
 
     tag = PullRequestTag(
         owner=owner, repo=repo, number=pull_request.number, is_receive=False

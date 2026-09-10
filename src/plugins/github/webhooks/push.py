@@ -19,6 +19,7 @@ from nonebot.adapters.github.utils import get_attr_or_item
 from src.plugins.github import config
 from src.plugins.github.cache.message_tag import RepoTag, CommitTag
 
+from ._messages import push_message
 from ._dependencies import SUBSCRIBERS, SEND_INTERVAL, send_subscriber_text
 
 __plugin_meta__ = PluginMetadata(
@@ -71,6 +72,8 @@ async def handle_push_event(event: Push, subscribers: SUBSCRIBERS):
     repo_name = event.payload.repository.full_name
     owner, repo = repo_name.split("/", 1)
 
+    # security: branch/tag names are trusted (collaborator-created) but
+    # still validated by the message template
     username: str = get_attr_or_item(get_attr_or_item(event.payload, "sender"), "login")
     if not username:
         username = "unknown"
@@ -85,9 +88,16 @@ async def handle_push_event(event: Push, subscribers: SUBSCRIBERS):
     after = _short_sha(event.payload.after)
     commit_count = len(event.payload.commits or [])
 
-    message = (
-        f"用户 {username} {action} 仓库 {repo_name} 的{target_type} {target_name} "
-        f"({commit_count} 个提交, {before} -> {after})"
+    message = push_message(
+        repo_name,
+        username,
+        target_type,
+        target_name,
+        action,
+        commit_count,
+        before,
+        after,
+        bool(event.payload.deleted),
     )
 
     if _is_valid_commit_sha(event.payload.after):

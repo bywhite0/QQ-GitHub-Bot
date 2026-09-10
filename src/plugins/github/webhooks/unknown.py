@@ -16,11 +16,11 @@ from nonebot.params import Depends
 from nonebot import logger, on_type
 from nonebot.adapters.github import Event
 from nonebot.plugin import PluginMetadata
-from nonebot.adapters.github.utils import get_attr_or_item
 
 from src.plugins.github import config
 from src.plugins.github.cache.message_tag import RepoTag
 
+from ._messages import unknown_message
 from ._dependencies import (
     EVENT_INFO,
     SUBSCRIBERS,
@@ -49,12 +49,11 @@ async def handle_unknown_event(
     if not subscribers:
         return
 
-    username: str = get_attr_or_item(get_attr_or_item(event.payload, "sender"), "login")
-
+    # security: never broadcast the event actor's login (zero-trust field)
     owner, repo, event_name, action = event_info
 
-    message = f"用户 {username} 触发了仓库 {repo} 的事件 {event_name}" + (
-        f"/{action}" if action else ""
+    message = unknown_message(f"{owner}/{repo}") + (
+        f"（{event_name}/{action}）" if action else f"（{event_name}）"
     )
 
     tag = RepoTag(owner=owner, repo=repo, is_receive=False)

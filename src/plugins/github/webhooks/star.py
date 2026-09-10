@@ -20,6 +20,7 @@ from nonebot.adapters.github import StarCreated, StarDeleted
 from src.plugins.github import config
 from src.plugins.github.cache.message_tag import RepoTag
 
+from ._messages import star_created_message
 from ._dependencies import SUBSCRIBERS, SEND_INTERVAL, Throttle, send_subscriber_text
 
 __plugin_meta__ = PluginMetadata(
@@ -42,14 +43,17 @@ async def handle_star_event(event: StarCreated | StarDeleted, subscribers: SUBSC
     if not subscribers:
         return
 
-    username = event.payload.sender.login
+    # security: never broadcast the stargazer's login (zero-trust field)
     repo_name = event.payload.repository.full_name
     action = event.payload.action
+
+    # star removals are not broadcast (negative news, and the
+    # anonymized wording would be meaningless)
+    if action != "created":
+        return
+
     star_count: int = event.payload.repository.stargazers_count
-    action_name = "starred" if action == "created" else "unstarred"
-    message = (
-        f"用户 {username} {action_name} 仓库 {repo_name} (共计 {star_count} 个 star)"
-    )
+    message = star_created_message(repo_name, star_count)
 
     owner, repo = repo_name.split("/", 1)
     tag = RepoTag(owner=owner, repo=repo, is_receive=False)
